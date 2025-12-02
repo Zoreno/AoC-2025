@@ -35,11 +35,11 @@ fn is_invalid_part1(n: &u64) -> bool {
 
     if digit_count % 2 == 1 {
         // Odd number of digits cannot repeat
-        return false;
+        false
     } else {
         // Split at midway and compare results.
         let (lhs, rhs) = n_as_string.split_at(digit_count / 2);
-        return lhs == rhs;
+        lhs == rhs
     }
 }
 
@@ -64,14 +64,14 @@ fn is_invalid_part2(n: &u64) -> bool {
         }
     }
 
-    return false;
+    false
 }
 
 //=====================================================================
 // Solvers
 //=====================================================================
 
-fn solve_part1(input: &Vec<Range>) -> u64 {
+fn solve_part1(input: &[Range]) -> u64 {
     input
         .iter()
         .flat_map(|input| (input.start..input.end + 1).filter(is_invalid_part1))
@@ -79,11 +79,11 @@ fn solve_part1(input: &Vec<Range>) -> u64 {
 }
 
 #[aoc(day2, part1)]
-fn part1(input: &Vec<Range>) -> u64 {
+fn part1(input: &[Range]) -> u64 {
     solve_part1(input)
 }
 
-fn solve_part2(input: &Vec<Range>) -> u64 {
+fn solve_part2(input: &[Range]) -> u64 {
     input
         .iter()
         .flat_map(|input| (input.start..input.end + 1).filter(is_invalid_part2))
@@ -91,7 +91,7 @@ fn solve_part2(input: &Vec<Range>) -> u64 {
 }
 
 #[aoc(day2, part2)]
-fn part2(input: &Vec<Range>) -> u64 {
+fn part2(input: &[Range]) -> u64 {
     solve_part2(input)
 }
 

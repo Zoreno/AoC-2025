@@ -82,7 +82,7 @@ impl DialState {
 // Solvers
 //=====================================================================
 
-fn solve_part1(input: &Vec<Input>) -> i32 {
+fn solve_part1(input: &[Input]) -> i32 {
     input
         .iter()
         .map(input_to_distance)
@@ -92,11 +92,11 @@ fn solve_part1(input: &Vec<Input>) -> i32 {
 }
 
 #[aoc(day1, part1)]
-pub fn part1(input: &Vec<Input>) -> i32 {
+pub fn part1(input: &[Input]) -> i32 {
     solve_part1(input)
 }
 
-fn solve_part2(input: &Vec<Input>) -> i32 {
+fn solve_part2(input: &[Input]) -> i32 {
     input
         .iter()
         .map(input_to_distance)
@@ -106,7 +106,7 @@ fn solve_part2(input: &Vec<Input>) -> i32 {
 }
 
 #[aoc(day1, part2)]
-pub fn part2(input: &Vec<Input>) -> i32 {
+pub fn part2(input: &[Input]) -> i32 {
     solve_part2(input)
 }
 

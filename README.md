@@ -6,7 +6,11 @@ Install the AoC runner and test runner:
 
 Run the code:
 
-    just run <day>
+    just run
+
+Run specific day:
+
+    just run-day <day>
 
 Run tests:
 

@@ -1,4 +1,8 @@
-run DAY:
+run:
+    cargo aoc --day 1
+    cargo aoc --day 2
+
+run-day DAY:
     cargo aoc --day {{DAY}}
 
 test:
@@ -6,3 +10,6 @@ test:
 
 setup:
     cargo install --locked cargo-aoc cargo-nextest
+
+lint:
+    cargo clippy

@@ -2,6 +2,7 @@ run:
     cargo aoc --day 1
     cargo aoc --day 2
     cargo aoc --day 3
+    cargo aoc --day 4
 
 run-day DAY:
     cargo aoc --day {{DAY}}

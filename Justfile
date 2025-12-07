@@ -5,6 +5,7 @@ run:
     cargo aoc --day 4
     cargo aoc --day 5
     cargo aoc --day 6
+    cargo aoc --day 7
 
 run-day DAY:
     cargo aoc --day {{DAY}}

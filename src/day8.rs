@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
@@ -62,18 +63,18 @@ fn compute_weakly_linked_components(vertices: &[Vertex], edges: &[Edge]) -> Vec<
     let mut adj: HashMap<Vertex, Vec<Vertex>> = HashMap::new();
 
     for v in vertices {
-        adj.entry(v.clone()).or_insert(Vec::new());
+        adj.insert(v.clone(), Vec::new());
     }
 
     let mut all_edges: Vec<Edge> = Vec::with_capacity(edges.len());
 
     for edge in edges {
         adj.entry(edge.a.clone())
-            .or_insert_with(Vec::new)
+            .or_insert(Vec::new())
             .push(edge.b.clone());
 
         adj.entry(edge.b.clone())
-            .or_insert_with(Vec::new)
+            .or_insert(Vec::new())
             .push(edge.a.clone());
 
         all_edges.push(edge.clone());
@@ -93,6 +94,7 @@ fn compute_weakly_linked_components(vertices: &[Vertex], edges: &[Edge]) -> Vec<
         queue.push_back(start);
 
         let mut comp_vertices: HashSet<Vertex> = HashSet::new();
+        let mut comp_edges: Vec<Edge> = Vec::new();
 
         while let Some(u) = queue.pop_front() {
             if !visited.insert(u.clone()) {
@@ -109,53 +111,144 @@ fn compute_weakly_linked_components(vertices: &[Vertex], edges: &[Edge]) -> Vec<
                 }
             }
 
-            let mut comp_edges: Vec<Edge> = Vec::new();
-
             for edge in &all_edges {
                 if comp_vertices.contains(&edge.a) && comp_vertices.contains(&edge.b) {
                     comp_edges.push(edge.clone());
                 }
             }
-
-            components.push(Component {
-                vertices: comp_vertices.clone(),
-                edges: comp_edges,
-            });
-
-            comp_vertices.clear();
         }
+
+        components.push(Component {
+            vertices: comp_vertices,
+            edges: comp_edges,
+        });
     }
 
     components
 }
 
-#[aoc(day8, part1)]
-fn part1(input: &[Vertex]) -> u64 {
-    let mut edges: Vec<Edge> = input
+fn get_edge_list(input: &[Vertex]) -> Vec<Edge> {
+    input
         .iter()
         .combinations(2)
         .map(|p| Edge::from_points(p[0].clone(), p[1].clone()))
-        .collect();
+        .sorted_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap())
+        .collect()
+}
 
-    edges.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
-
+#[aoc(day8, part1)]
+fn part1(input: &[Vertex]) -> usize {
+    let mut edges: Vec<Edge> = get_edge_list(input);
     edges.truncate(1000);
 
-    edges.iter().for_each(|e| println!("{:?}", e));
+    let components = compute_weakly_linked_components(&input, &edges);
+    let mut components = components.iter().map(|c| c.vertices.len()).collect_vec();
+    components.sort();
+    components.iter().rev().take(3).product::<usize>()
+}
 
-    let mut components = compute_weakly_linked_components(&input, &edges);
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct Node {
+    vertices: HashSet<Vertex>,
+}
 
-    for component in &components {
-        println!("{:?}", component);
+impl Node {
+    fn new() -> Self {
+        Node {
+            vertices: HashSet::new(),
+        }
     }
 
-    let mut components: Vec<usize> = components.iter().map(|c| c.vertices.len()).collect();
+    fn new_from(vertex: &Vertex) -> Self {
+        Node {
+            vertices: HashSet::from([vertex.clone()]),
+        }
+    }
 
-    components.sort();
+    fn combine(a: &Node, b: &Node) -> Self {
+        let vertices = a.vertices.union(&b.vertices).cloned().collect();
 
-    for component in components.iter().rev().take(3) {
-        println!("{:?}", component);
+        Node { vertices }
+    }
+
+    fn contains(&self, vertex: &Vertex) -> bool {
+        self.vertices.contains(vertex)
+    }
+}
+
+struct NodeList {
+    nodes: Vec<Node>,
+}
+
+impl NodeList {
+    fn new(nodes: &Vec<Vertex>) -> Self {
+        NodeList {
+            nodes: nodes.iter().map(Node::new_from).collect(),
+        }
+    }
+
+    fn add_edge(&mut self, edge: Edge) {
+        let node_a_idx = self.nodes.iter().position(|n| n.contains(&edge.a)).unwrap();
+        let node_b_idx = self.nodes.iter().position(|n| n.contains(&edge.b)).unwrap();
+
+        // Both nodes belong to the same tree.
+        if node_a_idx == node_b_idx {
+            return;
+        }
+
+        let node_a = &self.nodes[node_a_idx];
+        let node_b = &self.nodes[node_b_idx];
+
+        let combined = Node::combine(&node_a, &node_b);
+
+        self.nodes.remove(max(node_a_idx, node_b_idx));
+        self.nodes.remove(min(node_a_idx, node_b_idx));
+        self.nodes.push(combined);
+    }
+
+    fn get_len(&self) -> usize {
+        self.nodes.len()
+    }
+}
+
+#[aoc(day8, part2)]
+fn part2(input: &Vec<Vertex>) -> u64 {
+    let edges = get_edge_list(&input);
+
+    let mut node_list = NodeList::new(input);
+
+    for edge in edges {
+        node_list.add_edge(edge.clone());
+
+        if node_list.get_len() == 1 {
+            return edge.a.x * edge.b.x;
+        }
     }
 
     0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_compute_weakly_linked_components() {
+        let input = vec![Vertex::new(0, 0, 0), Vertex::new(1, 1, 1)];
+        let edges = vec![Edge::from_points(input[0].clone(), input[1].clone())];
+        let components = compute_weakly_linked_components(&input, &edges);
+        assert_eq!(components.len(), 1);
+    }
+
+    #[test]
+    fn test_compute_weakly_linked_components2() {
+        let input = vec![
+            Vertex::new(0, 0, 0),
+            Vertex::new(1, 1, 1),
+            Vertex::new(2, 2, 2),
+        ];
+        let edges = vec![Edge::from_points(input[0].clone(), input[1].clone())];
+        let components = compute_weakly_linked_components(&input, &edges);
+        assert_eq!(components.len(), 2);
+    }
 }

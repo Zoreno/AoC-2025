@@ -12,6 +12,7 @@ pub mod day5;
 pub mod day6;
 pub mod day7;
 pub mod day8;
+pub mod day9;
 
 pub fn transpose_ref<T>(matrix: &[Vec<T>]) -> Vec<Vec<&T>> {
     let rows = matrix.len();
